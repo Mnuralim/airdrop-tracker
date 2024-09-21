@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @import '@fontsource/inter/variable.css'; */
+
+body {
+  @apply font-sans bg-darkBg text-darkText;
+}
+
+a {
+  @apply text-primary hover:underline;
+}
+
+input,
+button,
+select {
+  @apply bg-darkAccent text-darkText border-none rounded-md;
+}
+
+button {
+  @apply px-4 py-2;
+}
