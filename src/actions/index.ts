@@ -164,7 +164,6 @@ export async function updateAirdrop(
   id: string,
   updatedData: {
     name: string
-    date: string
     sourceLink: string
     airdropLink: string
     result?: number | null
@@ -182,7 +181,6 @@ export async function updateAirdrop(
     where: { id },
     data: {
       ...updatedData,
-      date: new Date(updatedData.date),
       addresses: {
         deleteMany: {},
         create: updatedData.addresses.map((address: string) => ({ address })),

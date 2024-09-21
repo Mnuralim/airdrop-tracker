@@ -11,7 +11,11 @@ interface Props {
 const Page = async ({ params }: Props) => {
   const airdrop = await getAirdropById(params.id)
   if (!airdrop) {
-    return <div>Invalid Airdrop</div>
+    return (
+      <div className="container mx-auto mt-12">
+        <p className="text-center text-gray-500">Airdrop with id {params.id} not found.</p>
+      </div>
+    )
   }
   return (
     <section className="container mx-auto mt-12">

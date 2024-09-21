@@ -2,6 +2,9 @@
 import { checkInAirdrop, deleteAirdrop } from '@/actions'
 import { Airdrop } from '@prisma/client'
 import Link from 'next/link'
+import { useState } from 'react'
+import { toast } from 'react-toastify'
+import { FiLoader } from 'react-icons/fi'
 
 interface AirdropWithCheckIns extends Airdrop {
   checkIns: {
@@ -12,25 +15,46 @@ interface AirdropWithCheckIns extends Airdrop {
 interface Props {
   airdrops: AirdropWithCheckIns[]
 }
+
 const AirdropList = ({ airdrops }: Props) => {
   const today = new Date().toISOString().split('T')[0]
+  const [loadingCheckIn, setLoadingCheckIn] = useState<string | null>(null)
+  const [loadingDelete, setLoadingDelete] = useState<string | null>(null)
 
   const handleCheckIn = async (airdropId: string) => {
-    const checkIn = await checkInAirdrop(airdropId)
-    if (checkIn.message) {
-      alert(checkIn.message)
+    setLoadingCheckIn(airdropId)
+    try {
+      const checkIn = await checkInAirdrop(airdropId)
+      if (checkIn.message) {
+        toast.success(checkIn.message)
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      toast.error('Error during check-in.')
+    } finally {
+      setLoadingCheckIn(null)
+    }
+  }
+
+  const handleDeleteAirdrop = async (airdropId: string) => {
+    if (!confirm('Are you sure you want to delete this airdrop?')) return
+
+    setLoadingDelete(airdropId)
+    try {
+      const deleted = await deleteAirdrop(airdropId)
+      if (deleted.message) {
+        toast.success(deleted.message)
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      toast.error('Error deleting airdrop.')
+    } finally {
+      setLoadingDelete(null)
     }
   }
 
   const hasCheckedInToday = (checkIns: { date: Date }[]) => {
     return checkIns.some((checkIn) => new Date(checkIn.date).toISOString().split('T')[0] === today)
-  }
-
-  const handleDeleteAirdrop = async (airdropId: string) => {
-    const deleted = await deleteAirdrop(airdropId)
-    if (deleted.message) {
-      alert(deleted.message)
-    }
   }
 
   if (airdrops.length === 0) {
@@ -88,9 +112,10 @@ const AirdropList = ({ airdrops }: Props) => {
                 {!hasCheckedInToday(airdrop.checkIns) && (
                   <button
                     onClick={() => handleCheckIn(airdrop.id)}
-                    className="bg-primary py-1 px-3 rounded-md text-darkText hover:bg-blue-600 transition"
+                    className="bg-primary py-1 px-3 rounded-md text-darkText hover:bg-blue-600 transition flex justify-center items-center"
+                    disabled={loadingCheckIn === airdrop.id}
                   >
-                    Check In
+                    {loadingCheckIn === airdrop.id ? <FiLoader className="animate-spin h-5 w-5" /> : 'Check In'}
                   </button>
                 )}
                 <Link
@@ -101,9 +126,10 @@ const AirdropList = ({ airdrops }: Props) => {
                 </Link>
                 <button
                   onClick={() => handleDeleteAirdrop(airdrop.id)}
-                  className="bg-red-500 py-1 px-3 rounded-md text-darkText"
+                  className="bg-red-500 py-1 px-3 rounded-md text-darkText flex justify-center items-center"
+                  disabled={loadingDelete === airdrop.id}
                 >
-                  Delete
+                  {loadingDelete === airdrop.id ? <FiLoader className="animate-spin h-5 w-5" /> : 'Delete'}
                 </button>
               </td>
             </tr>

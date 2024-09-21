@@ -2,6 +2,8 @@
 
 import { addAirdrop } from '@/actions'
 import React, { useState } from 'react'
+import { FiLoader } from 'react-icons/fi'
+import { toast } from 'react-toastify'
 
 const predefinedTypes = ['testnet', 'bot', 'mini app telegram', 'gleam', 'form']
 
@@ -19,8 +21,7 @@ const AddAirdrop = ({ userId }: Props) => {
     addresses: [''],
   })
 
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleAddressChange = (index: number, value: string) => {
     const updatedAddresses = [...form.addresses]
@@ -35,6 +36,7 @@ const AddAirdrop = ({ userId }: Props) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const selectedType = form.customType || form.type
+    setIsLoading(true)
 
     try {
       await addAirdrop(
@@ -57,19 +59,18 @@ const AddAirdrop = ({ userId }: Props) => {
         addresses: [''],
       })
 
-      setSuccess('Airdrop added successfully!')
-      setError('')
+      toast.success('Airdrop added successfully!')
     } catch (err) {
       console.error(err)
-      setError('An error occurred while adding the airdrop.')
-      setSuccess('')
+
+      toast.error('An error occurred while adding the airdrop.')
+    } finally {
+      setIsLoading(false) // Stop loading state
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-xl mx-auto">
-      {success && <p className="text-green-500">{success}</p>}
-      {error && <p className="text-red-500">{error}</p>}
       <div>
         <label className="block mb-2">Airdrop Name</label>
         <input
@@ -123,7 +124,6 @@ const AddAirdrop = ({ userId }: Props) => {
         </div>
       </div>
 
-      {/* Address Section */}
       <div>
         <label className="block mb-2">Addresses Used</label>
         {form.addresses.map((address, index) => (
@@ -143,8 +143,12 @@ const AddAirdrop = ({ userId }: Props) => {
         </button>
       </div>
 
-      <button type="submit" className="w-full bg-primary text-darkText py-3 rounded-lg">
-        Add Airdrop
+      <button
+        type="submit"
+        className="w-full bg-primary text-darkText py-3 rounded-lg flex justify-center items-center"
+        disabled={isLoading}
+      >
+        {isLoading ? <FiLoader className="animate-spin h-5 w-5 text-darkText" /> : 'Add Airdrop'}
       </button>
     </form>
   )

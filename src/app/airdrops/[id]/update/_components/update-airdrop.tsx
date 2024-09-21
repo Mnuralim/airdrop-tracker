@@ -1,7 +1,11 @@
 'use client'
+
 import { updateAirdrop } from '@/actions'
 import { Airdrop } from '@prisma/client'
 import React, { useState } from 'react'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { FiLoader } from 'react-icons/fi'
 
 interface Props {
   airdrop: { addresses: { address: string; id: string; airdropId: string }[] } & Airdrop
@@ -10,13 +14,14 @@ interface Props {
 const UpdateAirdrop = ({ airdrop }: Props) => {
   const [formData, setFormData] = useState({
     name: airdrop.name,
-    date: new Date(airdrop.date).toISOString().slice(0, 10),
     result: airdrop.result || null,
     sourceLink: airdrop.sourceLink,
     airdropLink: airdrop.airdropLink,
     type: airdrop.type,
     addresses: airdrop.addresses.map((address) => address.address),
   })
+
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleAddressChange = (index: number, value: string) => {
     const updatedAddresses = [...formData.addresses]
@@ -30,8 +35,19 @@ const UpdateAirdrop = ({ airdrop }: Props) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await updateAirdrop(airdrop.id, formData)
+    setIsLoading(true)
+    try {
+      await updateAirdrop(airdrop.id, formData)
+
+      toast.success('Airdrop updated successfully!')
+    } catch (error) {
+      console.error(error)
+      toast.error('Error updating the airdrop.')
+    } finally {
+      setIsLoading(false)
+    }
   }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
@@ -44,16 +60,7 @@ const UpdateAirdrop = ({ airdrop }: Props) => {
           required
         />
       </div>
-      <div>
-        <label className="block mb-2">Date Completed</label>
-        <input
-          type="date"
-          value={formData.date}
-          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-          className="w-full p-4"
-          required
-        />
-      </div>
+
       <div>
         <label className="block mb-2">Result</label>
         <input
@@ -64,6 +71,7 @@ const UpdateAirdrop = ({ airdrop }: Props) => {
           className="w-full p-4"
         />
       </div>
+
       <div>
         <label className="block mb-2">Source Link</label>
         <input
@@ -74,6 +82,7 @@ const UpdateAirdrop = ({ airdrop }: Props) => {
           required
         />
       </div>
+
       <div>
         <label className="block mb-2">Airdrop Link</label>
         <input
@@ -84,6 +93,7 @@ const UpdateAirdrop = ({ airdrop }: Props) => {
           required
         />
       </div>
+
       <div>
         <label className="block mb-2">Airdrop Type</label>
         <input
@@ -95,7 +105,6 @@ const UpdateAirdrop = ({ airdrop }: Props) => {
         />
       </div>
 
-      {/* Address Section */}
       <div>
         <label className="block mb-2">Addresses Used</label>
         {formData.addresses.map((address, index) => (
@@ -115,8 +124,12 @@ const UpdateAirdrop = ({ airdrop }: Props) => {
         </button>
       </div>
 
-      <button type="submit" className="w-full bg-primary text-white py-3 rounded-lg">
-        Update Airdrop
+      <button
+        type="submit"
+        className="w-full bg-primary text-white py-3 rounded-lg flex justify-center items-center"
+        disabled={isLoading}
+      >
+        {isLoading ? <FiLoader className="animate-spin h-5 w-5" /> : 'Update Airdrop'}
       </button>
     </form>
   )
